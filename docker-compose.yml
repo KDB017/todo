@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   db:
-    # 修正点: build: . を指定し、上記のDockerfileを使ってイメージを構築する
     build: . 
     container_name: postgres_todo
     restart: always 
@@ -11,10 +10,12 @@ services:
     volumes:
       - db-store:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: 'user'
-      POSTGRES_PASSWORD: 'password'
-      POSTGRES_DB: 'todo_app'
-      # Dockerfileで設定したので、環境変数はDB名と認証情報に絞る
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
+    env_file:
+      - .env
     
 volumes:
   db-store:

@@ -4,32 +4,41 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os" // osパッケージをインポート
 
-	// PostgreSQLドライバをインポート (コード内では直接使わないが、db.Openの裏側で必要)
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	// 1. 接続文字列 (あなたが定義した電話番号とパスワード)
-	connStr := "user=user password=password host=localhost port=5432 dbname=todo_app sslmode=disable"
-    
-	// 2. データベース接続のオープン
-	// sql.Open は、接続を確立するのではなく、ドライバを初期化するだけである点に注意
+    // 1. 接続情報を環境変数から取得する
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+    host := os.Getenv("DB_HOST") // ホスト名も環境変数から取得
+	dbname := os.Getenv("DB_NAME") // データベース名も環境変数から取得
+
+    // 環境変数が設定されていない場合のデフォルト値やエラーチェックを追加可能
+    if user == "" || password == "" {
+        log.Fatal("エラー: 環境変数 DB_USER および DB_PASSWORD が設定されていません。")
+    }
+
+	// 2. 接続文字列を環境変数を使って構築
+	connStr := fmt.Sprintf(
+		"user=%s password=%s host=%s port=5432 dbname=%s sslmode=disable",
+		user, password, host, dbname,
+	)
+
+	// 3. データベース接続のオープン (以下、元のコードと同じ)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		// 接続設定に誤りがある場合にエラーが発生
 		log.Fatal(err)
 	}
-	// main関数が終わる前にDB接続を閉じる (リソース管理のベストプラクティス)
-	defer db.Close() 
+	defer db.Close()
 
-	// 3. 接続テスト
-	// Pingは、実際にDBサーバーとの間で通信を行い、接続を確立する
+	// 4. 接続テスト
 	err = db.Ping()
 	if err != nil {
-		// DBが起動していない、認証情報が間違っている場合にエラーが発生
 		log.Fatal("データベースへの接続に失敗しました: ", err)
 	}
 
-	fmt.Println("🎉 PostgreSQL への接続に成功しました！")
+	fmt.Println("🎉 PostgreSQL への接続に成功しました！）")
 }
