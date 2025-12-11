@@ -1,0 +1,13 @@
+version: 2
+
+linters:
+  enable:
+    - unparam
+    - govet
+    - unused
+    - ineffassign
+    - staticcheck
+
+formatters:
+  enable:
+    - gci

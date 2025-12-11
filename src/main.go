@@ -4,22 +4,22 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os" // osパッケージをインポート
+	"os"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
-    // 1. 接続情報を環境変数から取得する
+	// 1. 接続情報を環境変数から取得する
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-    host := os.Getenv("DB_HOST") // ホスト名も環境変数から取得
+	host := os.Getenv("DB_HOST")   // ホスト名も環境変数から取得
 	dbname := os.Getenv("DB_NAME") // データベース名も環境変数から取得
 
-    // 環境変数が設定されていない場合のデフォルト値やエラーチェックを追加可能
-    if user == "" || password == "" {
-        log.Fatal("エラー: 環境変数 DB_USER および DB_PASSWORD が設定されていません。")
-    }
+	// 環境変数が設定されていない場合のデフォルト値やエラーチェックを追加可能
+	if user == "" || password == "" {
+		log.Fatal("エラー: 環境変数 DB_USER および DB_PASSWORD が設定されていません。")
+	}
 
 	// 2. 接続文字列を環境変数を使って構築
 	connStr := fmt.Sprintf(
@@ -32,7 +32,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer func() {
+		if cerr := db.Close(); cerr != nil {
+			log.Printf("データベースのクローズに失敗しました: %v", cerr)
+		}
+	}()
 
 	// 4. 接続テスト
 	err = db.Ping()
