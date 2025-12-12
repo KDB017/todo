@@ -3,8 +3,9 @@ export $(shell sed 's/=.*//' .env)
 GO= go
 GOLINT=golangci-lint 
 MODULE	= main
-SRCDIR	= src
+SRCDIR	= internal
 TARGET	= $(MODULE).go
+DOCKER=docker
 
 all:
 	@:
@@ -18,3 +19,9 @@ lint:
 
 format:
 	$(GOLINT) fmt  ./$(SRCDIR)
+
+dockerup:
+	$(DOCKER) compose up -d
+
+dockerdown:
+	$(DOCKER) compose down
