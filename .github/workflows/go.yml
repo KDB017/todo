@@ -25,7 +25,7 @@ jobs:
     #   run: go get .
 
     - name: Build
-      run: go build -v -o myapp ./...
+      run: go build -v -o myapp ./internal
 
     - name: Test
-      run: go test -v ./...
+      run: go test -v ./internal/...
