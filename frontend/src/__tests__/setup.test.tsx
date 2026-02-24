@@ -1,5 +1,3 @@
-import { render, screen } from '@testing-library/react'
-
 // サンプル: コンポーネントのスモークテスト
 // 実装が進んだらここにコンポーネントをimportして使う
 
