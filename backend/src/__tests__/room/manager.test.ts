@@ -1,45 +1,109 @@
-import { describe, it, expect } from 'vitest'
-import { assignRoom, getRoom, removeUserFromRoom } from '../../room/manager.js'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { eq } from 'drizzle-orm'
+import { db } from '../../db/client.js'
+import { rooms, todos, users } from '../../db/schema.js'
+import {
+  addTodo,
+  addUser,
+  assignRoom,
+  getPublicUsers,
+  getRoomUserIds,
+  getUserRoomId,
+  getUserTodos,
+  removeUser,
+  setTodoCompleted,
+} from '../../room/manager.js'
+
+async function cleanDb() {
+  await db.delete(todos)
+  await db.delete(users)
+  await db.delete(rooms)
+}
+
+beforeEach(cleanDb)
+afterEach(cleanDb)
 
 describe('assignRoom', () => {
-  it('ルームが存在しない場合は新しいルームを作る', () => {
-    const room = assignRoom()
-    expect(room).toBeDefined()
-    expect(room.id).toBeTruthy()
-    expect(room.users.size).toBe(0)
+  it('ルームが存在しない場合は新しいルームを作る', async () => {
+    const roomId = await assignRoom()
+    expect(roomId).toBeTruthy()
+    const result = await db.select().from(rooms).where(eq(rooms.id, roomId))
+    expect(result).toHaveLength(1)
   })
 
-  it('空きのあるルームに再割り当てされる', () => {
-    const room1 = assignRoom()
-    const room2 = assignRoom()
-    expect(room1.id).toBe(room2.id)
-  })
-})
-
-describe('getRoom', () => {
-  it('存在するroomIdで取得できる', () => {
-    const room = assignRoom()
-    expect(getRoom(room.id)).toBe(room)
-  })
-
-  it('存在しないroomIdはundefinedを返す', () => {
-    expect(getRoom('nonexistent')).toBeUndefined()
+  it('空きのあるルームに再割り当てされる', async () => {
+    const roomId1 = await assignRoom()
+    const roomId2 = await assignRoom()
+    expect(roomId1).toBe(roomId2)
   })
 })
 
-describe('removeUserFromRoom', () => {
-  it('ユーザーを削除できる', () => {
-    const room = assignRoom()
-    room.users.set('user1', { id: 'user1', nickname: 'Test', todos: [] })
-    removeUserFromRoom(room.id, 'user1')
-    expect(room.users.has('user1')).toBe(false)
+describe('addUser / removeUser', () => {
+  it('ユーザーを追加できる', async () => {
+    const roomId = await assignRoom()
+    await addUser(roomId, 'user1', 'Tester')
+    const userIds = await getRoomUserIds(roomId)
+    expect(userIds).toContain('user1')
   })
 
-  it('最後のユーザーが退出するとルームが削除される', () => {
-    const room = assignRoom()
-    room.users.set('user2', { id: 'user2', nickname: 'Test', todos: [] })
-    removeUserFromRoom(room.id, 'user2')
-    // 空になると新しいルームとして再利用されない(別IDで作られる)
-    expect(getRoom(room.id)).toBeUndefined()
+  it('ユーザーを削除できる', async () => {
+    const roomId = await assignRoom()
+    await addUser(roomId, 'user1', 'Tester')
+    await removeUser('user1')
+    const userIds = await getRoomUserIds(roomId)
+    expect(userIds).not.toContain('user1')
+  })
+
+  it('最後のユーザーが退出するとルームが削除される', async () => {
+    const roomId = await assignRoom()
+    await addUser(roomId, 'user1', 'Tester')
+    await removeUser('user1')
+    const result = await db.select().from(rooms).where(eq(rooms.id, roomId))
+    expect(result).toHaveLength(0)
+  })
+})
+
+describe('getUserRoomId', () => {
+  it('参加済みユーザーのroomIdを取得できる', async () => {
+    const roomId = await assignRoom()
+    await addUser(roomId, 'user1', 'Tester')
+    expect(await getUserRoomId('user1')).toBe(roomId)
+  })
+
+  it('存在しないユーザーはnullを返す', async () => {
+    expect(await getUserRoomId('nonexistent')).toBeNull()
+  })
+})
+
+describe('Todo操作', () => {
+  it('Todoを追加できる', async () => {
+    const roomId = await assignRoom()
+    await addUser(roomId, 'user1', 'Tester')
+    await addTodo('user1', 'todo1', 'テストタスク')
+    const userTodos = await getUserTodos('user1')
+    expect(userTodos).toHaveLength(1)
+    expect(userTodos[0].title).toBe('テストタスク')
+    expect(userTodos[0].completed).toBe(false)
+  })
+
+  it('Todoを完了にできる', async () => {
+    const roomId = await assignRoom()
+    await addUser(roomId, 'user1', 'Tester')
+    await addTodo('user1', 'todo1', 'テストタスク')
+    await setTodoCompleted('todo1', true)
+    const userTodos = await getUserTodos('user1')
+    expect(userTodos[0].completed).toBe(true)
+  })
+
+  it('getPublicUsersで完了数が正しく集計される', async () => {
+    const roomId = await assignRoom()
+    await addUser(roomId, 'user1', 'Tester')
+    await addTodo('user1', 'todo1', 'タスク1')
+    await addTodo('user1', 'todo2', 'タスク2')
+    await setTodoCompleted('todo1', true)
+    const publicUsers = await getPublicUsers(roomId)
+    expect(publicUsers).toHaveLength(1)
+    expect(publicUsers[0].completed).toBe(1)
+    expect(publicUsers[0].total).toBe(2)
   })
 })
