@@ -32,7 +32,7 @@ export async function addUser(roomId: string, userId: string, nickname: string):
 
 export async function removeUser(userId: string): Promise<void> {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
-  if (!user) return;
+  if (!user) { return; }
 
   await db.delete(users).where(eq(users.id, userId));
 

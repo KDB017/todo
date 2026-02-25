@@ -31,7 +31,7 @@ async function broadcast(
   const userIds = await getRoomUserIds(roomId);
   const msg = JSON.stringify({ event, data });
   for (const userId of userIds) {
-    if (userId === excludeUserId) continue;
+    if (userId === excludeUserId) { continue; }
     const ws = wsMap.get(userId);
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(msg);
@@ -58,7 +58,7 @@ export function handleConnection(ws: WebSocket): void {
     }
 
     const roomId = await getUserRoomId(userId);
-    if (!roomId) return;
+    if (!roomId) { return; }
 
     if (event === "todo:add") {
       const todoId = generateId();
@@ -85,7 +85,7 @@ export function handleConnection(ws: WebSocket): void {
   ws.on("close", async () => {
     wsMap.delete(userId);
     const roomId = await getUserRoomId(userId);
-    if (!roomId) return;
+    if (!roomId) { return; }
 
     const users = await getPublicUsers(roomId);
     const me = users.find((u) => u.id === userId);
