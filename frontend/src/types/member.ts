@@ -3,6 +3,7 @@ export type Member = {
     name: string
     avatarText: string
     completedCount: number
+    totalCount: number
 }
 
 export type MemberList = Member[]
