@@ -19,3 +19,6 @@ build:
 
 clean:
 	rm -rf frontend/node_modules backend/node_modules frontend/dist backend/dist
+
+compose-up:
+	docker-compose up -d

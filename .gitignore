@@ -43,9 +43,12 @@ playwright-report/
 
 .claude/
 
+.github/
+
 docker-compose.yml
 backend/.env
 backend/.env.example
 frontend/.env
 frontend/.env.example
 
+.vscode/
