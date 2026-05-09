@@ -1,9 +1,10 @@
 export type Member = {
-    id: string
+    mail: string
     name: string
+    achievement: number
+    achievement_date: Date
     avatarText: string
-    completedCount: number
-    totalCount: number
+
 }
 
 export type MemberList = Member[]

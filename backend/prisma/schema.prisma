@@ -15,6 +15,7 @@ datasource db {
 model User{
   mail String @unique @id
   name String @unique
-  achievements Int @default(0)
-  achievement_date DateTime 
+  achievement Int @default(0)
+  achievement_date DateTime
+  avatarText String
 }

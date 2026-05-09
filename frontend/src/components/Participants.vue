@@ -16,12 +16,12 @@ const props = defineProps<{
             <h1>Participants</h1>
         </header>
         <ul class="members-information">
-            <li v-for="member in props.members" :key="member.id" class="member-card">
+            <li v-for="member in props.members" :key="member.mail" class="member-card">
                 <div class="avatar">{{ member.avatarText }}</div>
                 <div class="member-information">
                     <div class="name">{{ member.name }}</div>
-                    <div class="completion-rate">
-                        {{ member.completedCount }}/{{ member.totalCount }}
+                    <div class="completion">
+                        {{ member.achievement }}
                     </div>
                 </div>
             </li>
