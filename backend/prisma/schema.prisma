@@ -18,4 +18,5 @@ model User{
   achievement Int @default(0)
   achievement_date DateTime
   avatarText String
+  refresh_token String?
 }
